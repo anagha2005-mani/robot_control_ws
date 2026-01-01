@@ -1,61 +1,40 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionServer
-
-from control_msgs.action import FollowJointTrajectory
-from trajectory_msgs.msg import JointTrajectoryPoint
-
-import websocket
-import json
-import time
-
+from moveit_msgs.msg import DisplayTrajectory
 
 class TrajectoryBridge(Node):
-
     def __init__(self):
         super().__init__('trajectory_bridge')
 
-        # Connect to Node.js adapter
-        self.ws = websocket.WebSocket()
-        self.ws.connect("ws://localhost:9090")
-        self.get_logger().info("Connected to Node.js adapter")
-
-        # Create Action Server
-        self._action_server = ActionServer(
-            self,
-            FollowJointTrajectory,
-            '/follow_joint_trajectory',
-            self.execute_callback
+        self.subscription = self.create_subscription(
+            DisplayTrajectory,
+            '/display_planned_path',   # ✅ confirmed correct topic
+            self.callback,
+            10
         )
 
-    def execute_callback(self, goal_handle):
-        self.get_logger().info("Received trajectory goal")
+        self.get_logger().info(
+            'Trajectory bridge started. Waiting for MoveIt planned trajectories...'
+        )
 
-        trajectory = goal_handle.request.trajectory
-        joint_names = trajectory.joint_names
+    def callback(self, msg):
+        if not msg.trajectory:
+            return
 
-        for point in trajectory.points:
-            positions = point.positions
+        robot_traj = msg.trajectory[0].joint_trajectory
 
-            # Map joints → Dobot cartesian (basic mapping for now)
-            cmd = {
-                "cmd": "move_cartesian",
-                "pose": {
-                    "x": positions[0] * 100,
-                    "y": positions[1] * 100,
-                    "z": positions[2] * 100,
-                    "r": 0
-                },
-                "speed": 50
-            }
+        if not robot_traj.points:
+            return
 
-            self.ws.send(json.dumps(cmd))
-            time.sleep(1)
+        final_point = robot_traj.points[-1]
+        joint_positions = final_point.positions
 
-        goal_handle.succeed()
-        result = FollowJointTrajectory.Result()
-        return result
+        self.get_logger().info(
+            f'Planned joint angles (rad): {joint_positions}'
+        )
 
+        # 🔽 NEXT STEP: send these angles to Dobot hardware
+        # self.send_to_dobot(joint_positions)
 
 def main():
     rclpy.init()

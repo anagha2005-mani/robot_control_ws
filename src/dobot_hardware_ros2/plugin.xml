@@ -1,0 +1,10 @@
+<library path="dobot_hardware_ros2">
+  <class
+    name="dobot_hardware/DobotHardware"
+    type="dobot_hardware::DobotHardware"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Dobot Magician ros2_control hardware interface
+    </description>
+  </class>
+</library>

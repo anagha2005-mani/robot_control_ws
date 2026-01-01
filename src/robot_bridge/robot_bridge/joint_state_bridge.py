@@ -20,7 +20,7 @@ class JointStateBridge(Node):
 
         # WebSocket connection to Node.js adapter
         self.ws = websocket.WebSocket()
-        self.ws.connect("ws://localhost:9090")
+        self.ws.connect("ws://localhost:5001")
         self.get_logger().info("Connected to Node.js adapter")
 
         # Select robot

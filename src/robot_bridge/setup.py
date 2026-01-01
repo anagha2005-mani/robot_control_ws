@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 package_name = 'robot_bridge'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(),
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Anagha',
-    maintainer_email="anaghapathirappilly2005@gmail.com",
-    description='Bridge layer between application and controller',
-    license='MIT',
+    maintainer='anagha',
+    maintainer_email='anagha@todo.todo',
+    description='Robot bridge nodes',
+    license='Apache License 2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'robot_bridge = robot_bridge.bridge_node:main',
+            'trajectory_bridge = robot_bridge.trajectory_bridge:main',
         ],
     },
 )

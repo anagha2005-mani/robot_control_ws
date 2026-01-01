@@ -25,7 +25,7 @@ class RobotController(Node):
     def connect_to_adapter(self):
         try:
             self.ws = websocket.WebSocket()
-            self.ws.connect("ws://localhost:9090")
+            self.ws.connect("ws://localhost:5001")
             self.get_logger().info("Connected to Node.js adapter")
         except Exception as e:
             self.get_logger().error(f"WebSocket connection failed: {e}")
