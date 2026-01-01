@@ -16,20 +16,19 @@ def generate_launch_description():
     ])
 
     controllers_yaml = PathJoinSubstitution([
-        FindPackageShare("dobot_hardware_ros2"),
+        FindPackageShare("dobot_moveit_config"),
         "config",
-        "controllers.yaml"
+        "ros2_controllers.yaml"
     ])
 
     return LaunchDescription([
         Node(
             package="controller_manager",
             executable="ros2_control_node",
-            output="screen",
             parameters=[
                 {"robot_description": robot_description},
-                controllers_yaml
+                controllers_yaml   # 👈 THIS must be a separate entry
             ],
+            output="screen",
         )
     ])
-
