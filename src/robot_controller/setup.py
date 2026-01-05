@@ -14,7 +14,7 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
-            'controller_node = robot_controller.controller_node:main',
+            'dobot_joint_state_publisher = robot_controller.dobot_joint_state_publisher:main',
         ],
     },
 )

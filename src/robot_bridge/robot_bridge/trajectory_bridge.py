@@ -1,44 +1,45 @@
 import rclpy
 from rclpy.node import Node
-from moveit_msgs.msg import DisplayTrajectory
+from trajectory_msgs.msg import JointTrajectory
+from DobotDllType import *
 
-class TrajectoryBridge(Node):
+class DobotTrajectoryBridge(Node):
     def __init__(self):
-        super().__init__('trajectory_bridge')
+        super().__init__('dobot_trajectory_bridge')
 
         self.subscription = self.create_subscription(
-            DisplayTrajectory,
-            '/display_planned_path',   # ✅ confirmed correct topic
+            JointTrajectory,
+            '/arm_controller/joint_trajectory',
             self.callback,
             10
         )
 
-        self.get_logger().info(
-            'Trajectory bridge started. Waiting for MoveIt planned trajectories...'
-        )
+        self.api = load()
+        ConnectDobot(self.api, "", 115200)
+        self.get_logger().info("✅ Dobot connected")
 
-    def callback(self, msg):
-        if not msg.trajectory:
+    def callback(self, msg: JointTrajectory):
+        if not msg.points:
             return
 
-        robot_traj = msg.trajectory[0].joint_trajectory
+        point = msg.points[-1]
+        joints = point.positions
 
-        if not robot_traj.points:
-            return
+        # Dobot expects degrees
+        j1 = joints[0] * 57.2958
+        j2 = joints[1] * 57.2958
+        j3 = joints[2] * 57.2958
+        j4 = joints[3] * 57.2958
 
-        final_point = robot_traj.points[-1]
-        joint_positions = final_point.positions
-
-        self.get_logger().info(
-            f'Planned joint angles (rad): {joint_positions}'
+        SetPTPCmd(
+            self.api,
+            PTPMode.PTPMOVJANGLEMode,
+            j1, j2, j3, j4,
+            1
         )
-
-        # 🔽 NEXT STEP: send these angles to Dobot hardware
-        # self.send_to_dobot(joint_positions)
 
 def main():
     rclpy.init()
-    node = TrajectoryBridge()
+    node = DobotTrajectoryBridge()
     rclpy.spin(node)
-    node.destroy_node()
     rclpy.shutdown()

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="dobot">
+<robot name="dobot_magician">
 
   <!-- ================= BASE ================= -->
   <link name="base_link">
@@ -14,7 +14,7 @@
   </link>
 
   <!-- ================= LINK 1 ================= -->
-  <link name="link1">
+  <link name="magician_link_1">
     <visual>
       <origin xyz="0 0 0.05" rpy="0 0 0"/>
       <geometry>
@@ -27,7 +27,7 @@
   </link>
 
   <!-- ================= LINK 2 ================= -->
-  <link name="link2">
+  <link name="magician_link_2">
     <visual>
       <origin xyz="0 0 0.10" rpy="0 0 0"/>
       <geometry>
@@ -40,7 +40,7 @@
   </link>
 
   <!-- ================= LINK 3 ================= -->
-  <link name="link3">
+  <link name="magician_link_3">
     <visual>
       <origin xyz="0 0 0.08" rpy="0 0 0"/>
       <geometry>
@@ -53,7 +53,7 @@
   </link>
 
   <!-- ================= LINK 4 (WRIST) ================= -->
-  <link name="link4">
+  <link name="magician_link_4">
     <visual>
       <origin xyz="0 0 0.03" rpy="0 0 0"/>
       <geometry>
@@ -89,31 +89,31 @@
 
   <joint name="joint1" type="revolute">
     <parent link="base_link"/>
-    <child link="link1"/>
+    <child link="magician_link_1"/>
     <origin xyz="0 0 0.05" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
   </joint>
 
   <joint name="joint2" type="revolute">
-    <parent link="link1"/>
-    <child link="link2"/>
+    <parent link="magician_link_1"/>
+    <child link="magician_link_2"/>
     <origin xyz="0 0 0.10" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
   </joint>
 
   <joint name="joint3" type="revolute">
-    <parent link="link2"/>
-    <child link="link3"/>
+    <parent link="magician_link_2"/>
+    <child link="magician_link_3"/>
     <origin xyz="0 0 0.20" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
   </joint>
 
   <joint name="joint4" type="revolute">
-    <parent link="link3"/>
-    <child link="link4"/>
+    <parent link="magician_link_3"/>
+    <child link="magician_link_4"/>
     <origin xyz="0 0 0.16" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
@@ -121,7 +121,7 @@
 
   <!-- ================= FIXED TOOL JOINT ================= -->
   <joint name="tool0_fixed_joint" type="fixed">
-    <parent link="link4"/>
+    <parent link="magician_link_4"/>
     <child link="tool0"/>
     <origin xyz="0 0 0.06" rpy="0 0 0"/>
   </joint>
