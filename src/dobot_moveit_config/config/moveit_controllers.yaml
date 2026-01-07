@@ -1,13 +1,12 @@
-moveit_simple_controller_manager:
-  controller_names:
-    - arm_controller
+controller_manager_name: /controller_manager
 
-  arm_controller:
-    type: FollowJointTrajectory
-    action_ns: follow_joint_trajectory
-    default: true
-    joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
+controller_names:
+  - arm_controller
+
+arm_controller:
+  type: FollowJointTrajectory
+  joints:
+    - magician_joint_1
+    - magician_joint_2
+    - magician_joint_3
+    - magician_joint_4

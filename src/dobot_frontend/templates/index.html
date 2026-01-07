@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dobot Magician Control Panel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        .status-dot.executing {
+            background: #f59e0b;
+        }
+
+        .status-dot.idle {
+            background: #3b82f6;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-large {
+            grid-column: 1 / -1;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .joint-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .joint-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .joint-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .joint-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .log-entry.error {
+            color: #ff4444;
+        }
+
+        .log-entry.warning {
+            color: #ffaa00;
+        }
+
+        .log-entry.info {
+            color: #00ff00;
+        }
+
+        .error-display {
+            background: #fee;
+            color: #c00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #c00;
+            display: none;
+        }
+
+        .error-display.active {
+            display: block;
+        }
+
+        .gripper-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .gripper-controls .btn {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Dobot Magician Control Panel</h1>
+            <p>Real-time Robot Control & Monitoring</p>
+        </div>
+
+        <div class="dashboard">
+            <!-- Status Panel -->
+            <div class="panel">
+                <h2>Robot Status</h2>
+                <div class="status-indicator">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="connectionStatus">Connecting...</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="stateDot"></div>
+                    <span id="robotState">Unknown</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="executingDot"></div>
+                    <span id="executingStatus">Ready</span>
+                </div>
+                <div class="error-display" id="errorDisplay"></div>
+            </div>
+
+            <!-- Motion Controls -->
+            <div class="panel">
+                <h2>Motion Controls</h2>
+                <div class="control-grid">
+                    <button class="btn btn-primary" onclick="moveHome()">
+                        🏠 Home
+                    </button>
+                    <button class="btn btn-success" onclick="moveReady()">
+                        ✅ Ready
+                    </button>
+                    <button class="btn btn-warning btn-large" onclick="executePickPlace()">
+                        🔄 Execute Pick & Place
+                    </button>
+                    <button class="btn btn-danger" onclick="emergencyStop()">
+                        🛑 E-STOP
+                    </button>
+                    <button class="btn btn-primary" onclick="reset()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Joint Positions -->
+            <div class="panel">
+                <h2>Joint Positions</h2>
+                <div class="joint-display">
+                    <div class="joint-item">
+                        <div class="joint-label">Joint 1</div>
+                        <div class="joint-value" id="joint1">0.00°</div>
+                    </div>
+                    <div class="joint-item">
+                        <div class="joint-label">Joint 2</div>
+                        <div class="joint-value" id="joint2">0.00°</div>
+                    </div>
+                    <div class="joint-item">
+                        <div class="joint-label">Joint 3</div>
+                        <div class="joint-value" id="joint3">0.00°</div>
+                    </div>
+                    <div class="joint-item">
+                        <div class="joint-label">Joint 4</div>
+                        <div class="joint-value" id="joint4">0.00°</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 25px;">Gripper Control</h2>
+                <div class="gripper-controls">
+                    <button class="btn btn-success" onclick="gripperOpen()">
+                        ✋ Open
+                    </button>
+                    <button class="btn btn-warning" onclick="gripperClose()">
+                        ✊ Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="panel">
+                <h2>Activity Log</h2>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:5000');
+        const maxLogEntries = 50;
+        let logEntries = [];
+
+        socket.on('connect', () => {
+            log('Connected to robot server', 'info');
+            updateConnectionStatus('connected');
+        });
+
+        socket.on('disconnect', () => {
+            log('Disconnected from robot server', 'error');
+            updateConnectionStatus('disconnected');
+        });
+
+        socket.on('state_update', (data) => {
+            updateUI(data);
+        });
+
+        function updateUI(data) {
+            // Update connection status
+            updateConnectionStatus(data.connection);
+
+            // Update robot state
+            document.getElementById('robotState').textContent = 
+                data.state.charAt(0).toUpperCase() + data.state.slice(1);
+            
+            const stateDot = document.getElementById('stateDot');
+            stateDot.className = 'status-dot ' + data.state;
+
+            // Update executing status
+            const executingStatus = document.getElementById('executingStatus');
+            const executingDot = document.getElementById('executingDot');
+            
+            if (data.executing) {
+                executingStatus.textContent = 'Executing...';
+                executingDot.className = 'status-dot executing';
+            } else {
+                executingStatus.textContent = 'Ready';
+                executingDot.className = 'status-dot idle';
+            }
+
+            // Update joint positions
+            if (data.joints && data.joints.length >= 4) {
+                for (let i = 0; i < 4; i++) {
+                    const degrees = (data.joints[i] * 180 / Math.PI).toFixed(2);
+                    document.getElementById(`joint${i+1}`).textContent = `${degrees}°`;
+                }
+            }
+
+            // Update error display
+            const errorDisplay = document.getElementById('errorDisplay');
+            if (data.error && data.error.length > 0) {
+                errorDisplay.textContent = data.error;
+                errorDisplay.className = 'error-display active';
+            } else {
+                errorDisplay.className = 'error-display';
+            }
+        }
+
+        function updateConnectionStatus(status) {
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionStatus');
+            
+            if (status === 'connected') {
+                dot.className = 'status-dot connected';
+                text.textContent = 'Connected';
+            } else {
+                dot.className = 'status-dot disconnected';
+                text.textContent = 'Disconnected';
+            }
+        }
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            
+            logEntries.unshift(entry);
+            if (logEntries.length > maxLogEntries) {
+                logEntries.pop();
+            }
+            
+            const logContainer = document.getElementById('logContainer');
+            logContainer.innerHTML = logEntries
+                .map(e => `<div class="log-entry ${type}">${e}</div>`)
+                .join('');
+        }
+
+        async function apiCall(endpoint, action) {
+            try {
+                log(`Sending command: ${action}`, 'info');
+                const response = await fetch(`http://localhost:5000/api/${endpoint}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`${action} - ${data.message}`, 'info');
+                } else {
+                    log(`${action} failed - ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function moveHome() {
+            apiCall('move_home', 'Move Home');
+        }
+
+        function moveReady() {
+            apiCall('move_ready', 'Move Ready');
+        }
+
+        function executePickPlace() {
+            apiCall('pick_place', 'Pick and Place');
+        }
+
+        function emergencyStop() {
+            apiCall('emergency_stop', 'Emergency Stop');
+            log('EMERGENCY STOP ACTIVATED!', 'error');
+        }
+
+        function reset() {
+            apiCall('reset', 'Reset');
+        }
+
+        function gripperOpen() {
+            apiCall('gripper_open', 'Gripper Open');
+        }
+
+        function gripperClose() {
+            apiCall('gripper_close', 'Gripper Close');
+        }
+
+        // Request initial state
+        socket.emit('request_state');
+    </script>
+</body>
+</html>

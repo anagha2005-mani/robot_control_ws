@@ -1,30 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot name="dobot_magician">
-
-    <!-- Planning group -->
-    <group name="arm">
-        <chain base_link="base_link" tip_link="link4"/>
-    </group>
-
-    <!-- Home position -->
-    <group_state name="home" group="arm">
-        <joint name="joint_1" value="0"/>
-        <joint name="joint_2" value="0"/>
-        <joint name="joint_3" value="0"/>
-        <joint name="joint_4" value="0"/>
-    </group_state>
-
-    <!-- World attachment -->
-    <virtual_joint
-        name="world_joint"
-        type="fixed"
-        parent_frame="world"
-        child_link="base_link"/>
-
-    <!-- Disable adjacent collisions -->
-    <disable_collisions link1="base_link" link2="link1" reason="Adjacent"/>
-    <disable_collisions link1="link1" link2="link2" reason="Adjacent"/>
-    <disable_collisions link1="link2" link2="link3" reason="Adjacent"/>
-    <disable_collisions link1="link3" link2="link4" reason="Adjacent"/>
-
+  <!-- ========================= -->
+  <!-- Planning Group: ARM -->
+  <!-- ========================= -->
+  <group name="arm">
+    <joint name="magician_joint_1"/>
+    <joint name="magician_joint_2"/>
+    <joint name="magician_joint_3"/>
+    <joint name="magician_joint_4"/>
+  </group>
+  
+  <!-- ========================= -->
+  <!-- Home Position -->
+  <!-- ========================= -->
+  <group_state name="home" group="arm">
+    <joint name="magician_joint_1" value="0"/>
+    <joint name="magician_joint_2" value="0"/>
+    <joint name="magician_joint_3" value="0"/>
+    <joint name="magician_joint_4" value="0"/>
+  </group_state>
+  
+  <!-- ========================= -->
+  <!-- Virtual Joint (World) -->
+  <!-- ========================= -->
+  <virtual_joint
+    name="world_joint"
+    type="fixed"
+    parent_frame="world"
+    child_link="magician_base_link"/>
+  
+  <!-- ========================= -->
+  <!-- Disable Adjacent Collisions -->
+  <!-- ========================= -->
+  <disable_collisions link1="magician_base_link" link2="magician_link_1" reason="Adjacent"/>
+  <disable_collisions link1="magician_link_1" link2="magician_link_2" reason="Adjacent"/>
+  <disable_collisions link1="magician_link_2" link2="magician_link_3" reason="Adjacent"/>
+  <disable_collisions link1="magician_link_3" link2="magician_link_4" reason="Adjacent"/>
+  
+  <!-- ========================= -->
+  <!-- End Effector -->
+  <!-- ========================= -->
+  <end_effector
+    name="gripper"
+    parent_link="magician_link_4"/>
 </robot>

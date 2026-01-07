@@ -2,27 +2,42 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <ros2_control name="DobotSystem" type="system">
+
     <hardware>
       <plugin>dobot_hardware/DobotHardware</plugin>
-
+      <param name="port">/dev/ttyACM0</param>
+      <param name="baudrate">115200</param>
+      <param name="dof">4</param>
     </hardware>
 
-    <joint name="joint1">
+    <!-- Arm joints -->
+    <joint name="magician_joint_1">
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
 
-    <joint name="joint2">
+    <joint name="magician_joint_2">
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
 
-    <joint name="joint3">
+    <joint name="magician_joint_3">
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
 
-    <joint name="joint4">
+    <joint name="magician_joint_4">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+
+    <!-- Gripper (optional, but included for completeness) -->
+    <joint name="magician_joint_prismatic_l">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+
+    <joint name="magician_joint_prismatic_r">
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
